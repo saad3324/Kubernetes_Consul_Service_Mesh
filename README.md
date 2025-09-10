@@ -10,28 +10,7 @@ It demonstrates how to achieve:
 ✅ Zero-Trust Networking with Consul Intentions  
 
 ---
-📌 Architecture
-
-```mermaid
-flowchart LR
-    subgraph AWS EKS Cluster
-      A[Frontend Service] -->|Consul Upstream| B[Checkout Service]
-      B --> C[Payment Service]
-      B --> D[Shipping Service]
-      B --> E[Email Service]
-      B --> F[Currency Service]
-      B --> G[Product Catalog]
-      B --> H[Cart Service --> Redis]
-      I[Recommendation Service] --> G
-      A --> I
-      A --> J[Ad Service]
-    end
-
-    subgraph Consul Service Mesh
-      K[Sidecar Proxies]
-      L[Mesh Gateway]
-      M[Consul UI + API]
-    end
+🗂️ Project Structure
 
 k8s-consul-service-mesh/
 │── terraform/                 # Terraform IaC for AWS VPC + EKS
@@ -62,6 +41,7 @@ k8s-consul-service-mesh/
 │   └── curl-debug-pod.yaml    # Debugging pod for testing mesh
 │
 └── README.md
+
 
 
 ⚡ Quick Start
