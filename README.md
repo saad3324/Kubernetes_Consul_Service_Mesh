@@ -1,15 +1,18 @@
-🌀 Consul Service Mesh on AWS EKS
+# 🌀 Consul Service Mesh on AWS EKS
 
-This project provisions a production-ready Kubernetes cluster on AWS EKS using Terraform, and deploys a microservices-based application secured by HashiCorp Consul Service Mesh.
+This project provisions a **production-ready Kubernetes cluster** on **AWS EKS** using Terraform, and deploys a **microservices-based application** secured by **HashiCorp Consul Service Mesh**.  
 
-It demonstrates how to achieve:
-✅ Automated Infrastructure with Terraform
-✅ Secure Service-to-Service Communication (mTLS)
-✅ Dynamic Service Discovery & Traffic Routing
-✅ Failover & Multi-Cluster Peering
-✅ Zero-Trust Networking with Consul Intentions
+It demonstrates how to achieve:  
+✅ Automated Infrastructure with Terraform  
+✅ Secure Service-to-Service Communication (mTLS)  
+✅ Dynamic Service Discovery & Traffic Routing  
+✅ Failover & Multi-Cluster Peering  
+✅ Zero-Trust Networking with Consul Intentions  
 
+---
 📌 Architecture
+
+```mermaid
 flowchart LR
     subgraph AWS EKS Cluster
       A[Frontend Service] -->|Consul Upstream| B[Checkout Service]
@@ -30,7 +33,6 @@ flowchart LR
       M[Consul UI + API]
     end
 
-🗂️ Project Structure
 k8s-consul-service-mesh/
 │── terraform/                 # Terraform IaC for AWS VPC + EKS
 │   ├── main.tf
@@ -61,8 +63,10 @@ k8s-consul-service-mesh/
 │
 └── README.md
 
+
 ⚡ Quick Start
 1️⃣ Provision Infrastructure (Terraform)
+
 cd terraform
 terraform init
 terraform apply -auto-approve
