@@ -10,38 +10,6 @@ It demonstrates how to achieve:
 ✅ Zero-Trust Networking with Consul Intentions  
 
 ---
-🗂️ Project Structure
-
-k8s-consul-service-mesh/
-│── terraform/                 # Terraform IaC for AWS VPC + EKS
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-│
-│── consul/                    # Consul Helm values & CRDs
-│   ├── consul-values.yaml
-│   ├── mesh.yaml
-│   ├── intentions.yaml
-│   ├── resolver.yaml
-│   └── exported-services.yaml
-│
-│── services/                  # Kubernetes microservices manifests
-│   ├── frontend.yaml
-│   ├── checkoutservice.yaml
-│   ├── cartservice.yaml
-│   ├── shippingservice.yaml
-│   ├── paymentservice.yaml
-│   ├── productcatalog.yaml
-│   ├── emailservice.yaml
-│   ├── adservice.yaml
-│   ├── recommendation.yaml
-│   └── redis.yaml
-│
-│── debug/
-│   └── curl-debug-pod.yaml    # Debugging pod for testing mesh
-│
-└── README.md
-
 
 
 ⚡ Quick Start
