@@ -1,135 +1,96 @@
-Consul Service Mesh on AWS EKS
+🌀 Consul Service Mesh on AWS EKS
 
-This project provisions an AWS EKS cluster with Terraform and deploys Consul as a service mesh to manage microservices communication, security, and observability.
+This project provisions a production-ready Kubernetes cluster on AWS EKS using Terraform, and deploys a microservices-based application secured by HashiCorp Consul Service Mesh.
 
-📌 Overview
+It demonstrates how to achieve:
+✅ Automated Infrastructure with Terraform
+✅ Secure Service-to-Service Communication (mTLS)
+✅ Dynamic Service Discovery & Traffic Routing
+✅ Failover & Multi-Cluster Peering
+✅ Zero-Trust Networking with Consul Intentions
 
-Infrastructure as Code: Uses Terraform to create VPC, subnets, NAT gateway, and an EKS cluster.
+📌 Architecture
+flowchart LR
+    subgraph AWS EKS Cluster
+      A[Frontend Service] -->|Consul Upstream| B[Checkout Service]
+      B --> C[Payment Service]
+      B --> D[Shipping Service]
+      B --> E[Email Service]
+      B --> F[Currency Service]
+      B --> G[Product Catalog]
+      B --> H[Cart Service --> Redis]
+      I[Recommendation Service] --> G
+      A --> I
+      A --> J[Ad Service]
+    end
 
-Service Mesh: HashiCorp Consul for service discovery, secure communication (mTLS), failover, and traffic management.
+    subgraph Consul Service Mesh
+      K[Sidecar Proxies]
+      L[Mesh Gateway]
+      M[Consul UI + API]
+    end
 
-Microservices: Deploys a sample application (based on Google’s microservices demo
-) including:
+🗂️ Project Structure
+k8s-consul-service-mesh/
+│── terraform/                 # Terraform IaC for AWS VPC + EKS
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+│
+│── consul/                    # Consul Helm values & CRDs
+│   ├── consul-values.yaml
+│   ├── mesh.yaml
+│   ├── intentions.yaml
+│   ├── resolver.yaml
+│   └── exported-services.yaml
+│
+│── services/                  # Kubernetes microservices manifests
+│   ├── frontend.yaml
+│   ├── checkoutservice.yaml
+│   ├── cartservice.yaml
+│   ├── shippingservice.yaml
+│   ├── paymentservice.yaml
+│   ├── productcatalog.yaml
+│   ├── emailservice.yaml
+│   ├── adservice.yaml
+│   ├── recommendation.yaml
+│   └── redis.yaml
+│
+│── debug/
+│   └── curl-debug-pod.yaml    # Debugging pod for testing mesh
+│
+└── README.md
 
-frontend (public entrypoint via LoadBalancer)
-
-checkoutservice, cartservice, productcatalogservice, shippingservice, paymentservice, currencyservice, emailservice, adservice, recommendationservice
-
-redis-cart for cart storage
-
-Consul Add-Ons:
-
-Connect Injector (automatic sidecar proxy injection)
-
-Mesh Gateway for cross-cluster traffic
-
-UI exposed via LoadBalancer
-
-🏗️ Infrastructure Setup with Terraform
-1. Configure AWS Credentials
-
-Export AWS credentials or provide via terraform.tfvars:
-
-aws_region           = "us-east-1"
-aws_access_key_id    = "<your-access-key>"
-aws_secret_access_key = "<your-secret-key>"
-
-vpc_cidr_block             = "10.0.0.0/16"
-private_subnet_cidr_blocks  = ["10.0.1.0/24", "10.0.2.0/24"]
-public_subnet_cidr_blocks   = ["10.0.101.0/24", "10.0.102.0/24"]
-
-k8s_cluster_name = "myapp-eks-cluster"
-k8s_version      = "1.27"
-
-2. Deploy Infra
+⚡ Quick Start
+1️⃣ Provision Infrastructure (Terraform)
+cd terraform
 terraform init
-terraform plan
 terraform apply -auto-approve
-
-3. Configure kubectl
 aws eks update-kubeconfig --region us-east-1 --name myapp-eks-cluster
-kubectl get nodes
 
-🚀 Deploy Consul Service Mesh
-1. Install Consul with Helm
-
-Add the Helm repo:
-
+2️⃣ Install Consul via Helm
 helm repo add hashicorp https://helm.releases.hashicorp.com
-helm repo update
+helm install consul hashicorp/consul -f consul/consul-values.yaml
+kubectl get pods -l app=consul
 
-
-Install Consul:
-
-helm install consul hashicorp/consul -f consul-values.yaml
-
-
-Where consul-values.yaml includes:
-
-global:
-  name: consul
-  datacenter: dc1
-  tls:
-    enabled: true
-  acls:
-    manageSystemACLs: true
-
-server:
-  replicas: 3
-
-ui:
-  enabled: true
-  service:
-    type: LoadBalancer
-
-connectInject:
-  enabled: true
-  default: true
-
-
-Verify Consul pods:
-
-kubectl get pods -n default -l app=consul
-
-📦 Deploy Microservices
-
-Apply Kubernetes manifests:
-
+3️⃣ Deploy Microservices
 kubectl apply -f services/
-
-
-Where services/ contains all deployments and services (frontend, checkout, cart, etc.).
-
-Expose frontend:
-
 kubectl get svc frontend-external
 
 
-Access frontend via the LoadBalancer external IP.
+Access the app via the frontend LoadBalancer IP.
 
-🔐 Consul Service Mesh Features
-1. Sidecar Injection
-
-Enable Consul connect injection in services with annotations:
-
+🔐 Service Mesh Features
+✅ Sidecar Injection
 annotations:
   consul.hashicorp.com/connect-inject: 'true'
 
-2. Service Upstreams
-
-Example: checkout service connecting to dependencies
-
+✅ Upstream Dependencies
 annotations:
   consul.hashicorp.com/connect-service-upstreams: 'productcatalogservice:3550,shippingservice:50052'
 
-3. Service Intentions (Traffic Policy)
-
-Control access between services:
-
-apiVersion: consul.hashicorp.com/v1alpha1
+✅ Intentions (Zero-Trust Networking)
 kind: ServiceIntentions
-metadata:
-  name: shipping-allow-eks
 spec:
   destination:
     name: shippingservice
@@ -137,20 +98,17 @@ spec:
    - name: frontend
      action: allow
 
-4. Failover with ServiceResolvers
-apiVersion: consul.hashicorp.com/v1alpha1
+✅ Failover with ServiceResolvers
 kind: ServiceResolver
-metadata:
-  name: shippingservice
 spec:
   failover:
     '*':
       targets:
         - peer: 'DOK'
 
-🛠️ Debugging
+🛠 Debugging
 
-Deploy a curl debug pod:
+Deploy curl pod:
 
 kubectl apply -f debug/curl-debug-pod.yaml
 kubectl exec -it curl-debug-pod -- sh
@@ -158,21 +116,22 @@ curl http://checkoutservice:5050
 
 📊 Observability
 
-Use Consul UI (via LoadBalancer) to visualize services, intentions, and traffic.
+Consul UI available via LoadBalancer
 
-Integrate Prometheus/Grafana for deeper metrics.
+Visualize service topology, upstreams, and intentions
 
-📌 Next Steps
+Extend with Prometheus + Grafana for metrics
 
-Enable Consul ACLs in production.
+🎯 Learning Outcomes
 
-Configure multi-cluster federation using Mesh Gateways.
-
-Add CI/CD with GitHub Actions or Jenkins for automated deployment.
-
-Integrate HashiCorp Vault for secret management.
+By completing this project, you will learn how to:
+✔ Deploy a Kubernetes cluster on AWS using Terraform
+✔ Integrate Consul Service Mesh with Kubernetes
+✔ Secure traffic between microservices with mTLS
+✔ Implement service discovery, failover, and traffic policies
+✔ Debug and monitor a service mesh-enabled microservices app
 
 👤 Maintainer
 
 Muhammad Saad
-DevOps Engineer – Innovent.io
+DevOps Engineer
